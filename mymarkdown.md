@@ -7,9 +7,7 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 
 # Objective
@@ -30,22 +28,21 @@ BONUS Question
 based on some of the variables in the dataset, and evaluate the performance of the model
 
 
-```{r, message=FALSE}
+
+```r
 setwd("~/Desktop/Data Science (Google)/Other/Data Science Interview/scfhs-project/data")
 
 emp <- read.csv("employees_data.csv")
 library(sqldf)
 library(corrplot)
 library(caret)
-
-
 ```
 
 # Collect data with SQL
 ## Data will be used to answer Question 1. 
 
-```{r}
 
+```r
 # I am trying to get the monthly incomes of technical degrees working in R&D
 data.1 <- sqldf('SELECT Gender, MonthlyIncome 
                 FROM emp
@@ -54,7 +51,8 @@ data.1 <- sqldf('SELECT Gender, MonthlyIncome
 ```
 
 ## Data will be used to answer Question 2. 
-```{r}
+
+```r
 # here I am getting work life balance and job satisfaction score for Females working as Sales Reps
 # so we can figure out the correlation between them
 data.2<- sqldf('SELECT WorkLifeBalance, JobSatisfaction 
@@ -71,31 +69,58 @@ that the model is not misleading
 
 # Data Exploration and Data Cleaning 
 ## For Question 1
-```{r}
+
+```r
 males = which(data.1$Gender=='Male')
 females = which(data.1$Gender=='Female')
 t.test(data.1$MonthlyIncome[males],data.1$MonthlyIncome[females]) 
+```
 
+```
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  data.1$MonthlyIncome[males] and data.1$MonthlyIncome[females]
+## t = -3.2278, df = 52.487, p-value = 0.002152
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -5021.590 -1172.011
+## sample estimates:
+## mean of x mean of y 
+##  4574.810  7671.611
 ```
 
 P Value = 0.002 (with alpha = 0.05) we reject the null and conclude that the pay is significantly different
 
 ## For Question 2
-```{r}
+
+```r
 M = cor(data.2)
 M # the correlation coefficient = -0.22
 ```
 
+```
+##                 WorkLifeBalance JobSatisfaction
+## WorkLifeBalance        1.000000       -0.221942
+## JobSatisfaction       -0.221942        1.000000
+```
+
 ## Exploratory Analysis/Data Cleaning For Question 3
 The first step in data cleaning is checking if there are missing values 
-```{r}
+
+```r
 sum(is.na(emp))
+```
+
+```
+## [1] 0
 ```
 
 removed varibles that does not add value or might hurt the model
 that includes EmployeeCount, EmployeeNumber (ID),Over18 ,StandardHours
 
-```{r}
+
+```r
 data.3<- emp[,-c(9,10)] 
 ```
 
@@ -104,8 +129,113 @@ We can used Near Zero Variance to detect those varibles and remove them
 Applying the near zero variance on every column in that data frame will help us detect the variables
 
 
-```{r}
+
+```r
 apply(X = data.3, FUN = nearZeroVar, MARGIN = 2) 
+```
+
+```
+## $Age
+## integer(0)
+## 
+## $Attrition
+## integer(0)
+## 
+## $BusinessTravel
+## integer(0)
+## 
+## $DailyRate
+## integer(0)
+## 
+## $Department
+## integer(0)
+## 
+## $DistanceFromHome
+## integer(0)
+## 
+## $Education
+## integer(0)
+## 
+## $EducationField
+## integer(0)
+## 
+## $EnvironmentSatisfaction
+## integer(0)
+## 
+## $Gender
+## integer(0)
+## 
+## $HourlyRate
+## integer(0)
+## 
+## $JobInvolvement
+## integer(0)
+## 
+## $JobLevel
+## integer(0)
+## 
+## $JobRole
+## integer(0)
+## 
+## $JobSatisfaction
+## integer(0)
+## 
+## $MaritalStatus
+## integer(0)
+## 
+## $MonthlyIncome
+## integer(0)
+## 
+## $MonthlyRate
+## integer(0)
+## 
+## $NumCompaniesWorked
+## integer(0)
+## 
+## $Over18
+## [1] 1
+## 
+## $OverTime
+## integer(0)
+## 
+## $PercentSalaryHike
+## integer(0)
+## 
+## $PerformanceRating
+## integer(0)
+## 
+## $RelationshipSatisfaction
+## integer(0)
+## 
+## $StandardHours
+## [1] 1
+## 
+## $StockOptionLevel
+## integer(0)
+## 
+## $TotalWorkingYears
+## integer(0)
+## 
+## $TrainingTimesLastYear
+## integer(0)
+## 
+## $WorkLifeBalance
+## integer(0)
+## 
+## $YearsAtCompany
+## integer(0)
+## 
+## $YearsInCurrentRole
+## integer(0)
+## 
+## $YearsSinceLastPromotion
+## integer(0)
+## 
+## $YearsWithCurrManager
+## integer(0)
+```
+
+```r
 # it looks like StandardHours, Over18 has the same values across all rows, so we remove them
 data.3<- data.3[,-c(20,25)]
 ```
@@ -115,11 +245,14 @@ it is when the variables (Features) are correlated with each other
 Therefore it is important to remove one of the correlated variables 
 or apply models that handles such scenarios.
 
-```{r}
+
+```r
 data.3.num = data.3[,-c(2,3,5,8,10,14,16,20)]
 M2 = cor(data.3.num)
 corrplot(M2, method = "circle")
 ```
+
+![](mymarkdown_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 There seems to be some correlated features that needs to be removed
 
@@ -132,12 +265,14 @@ are all correlated so I will remove all of them except for YearsAtCompany
 
 Also YearsAtCompany and YearsInCurrentRole and YearsSinceLastPromotion and YearsWithcurrManger
 are all correlated so I will remove all of them except for YearsAtCompany
-```{r}
+
+```r
 data.3 = data.3[,-c(1,13,21,28)]
 ```
 Here I am converting 1 & 2 to unhappy employees, and 3 &4 to happy to make modeling binary and cleaner and much more interpretable
 
-```{r}
+
+```r
 data.3$JobSatisfaction[data.3$JobSatisfaction==1 | data.3$JobSatisfaction==2]<-"Unappy"
 data.3$JobSatisfaction[data.3$JobSatisfaction==3 | data.3$JobSatisfaction==4]<-"Happy"
 ```
@@ -149,7 +284,8 @@ now that the data is ready, we can start modeling
 I will build a Random Forest Model using the Caret Library
 Before doing this I need to split the data intro training and testing 
 
-```{r}
+
+```r
 set.seed(1)
 
 n <- nrow(data.3)  
@@ -165,7 +301,8 @@ testing<- data.3[-trainIndex,]
 testing$JobSatisfaction<-as.factor(testing$JobSatisfaction)
 ```
 
-```{r}
+
+```r
 # to help reduce the variance, I will use 10 fold cross validation
 
 train_control<- trainControl(method="cv", number=10)
@@ -176,7 +313,8 @@ clasmodel<- train(JobSatisfaction~., data=training, trControl=train_control, met
 
 now we can evaluate it against the testing dataset
 
-```{r}
+
+```r
 # make predictions
 predictions<- predict(clasmodel,testing)
 
@@ -186,6 +324,35 @@ mydat<- cbind(testing,predictions)
 
 # Confusion Matrix
 confusionMatrix(predictions,testing$JobSatisfaction)
+```
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Happy Unappy
+##     Happy    172    114
+##     Unappy     7      1
+##                                           
+##                Accuracy : 0.5884          
+##                  95% CI : (0.5298, 0.6452)
+##     No Information Rate : 0.6088          
+##     P-Value [Acc > NIR] : 0.7818          
+##                                           
+##                   Kappa : -0.0365         
+##  Mcnemar's Test P-Value : <2e-16          
+##                                           
+##             Sensitivity : 0.960894        
+##             Specificity : 0.008696        
+##          Pos Pred Value : 0.601399        
+##          Neg Pred Value : 0.125000        
+##              Prevalence : 0.608844        
+##          Detection Rate : 0.585034        
+##    Detection Prevalence : 0.972789        
+##       Balanced Accuracy : 0.484795        
+##                                           
+##        'Positive' Class : Happy           
+## 
 ```
 
 
