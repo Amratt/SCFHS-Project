@@ -12,7 +12,11 @@ output:
 
 # Objective
 
- from the exploratory analysis done in Tableau, I have concluded 2 things:
+This project is an extension to the Tableau project that has Employee data.
+
+ from the exploratory analysis done in Tableau <https://public.tableau.com/profile/amr6020#!/>, 
+ 
+ I have concluded 2 things:
  1. Women with technical degrees working in R&D earn more money than men 
     with the same criteria 
  2. There is a relationship between work-life balance and job satisfaction if
